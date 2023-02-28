@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
+import loader from "../assets/loader.gif"
 import { useNavigate, Link } from "react-router-dom";
 import Logo from "../assets/logo.png";
 import { ToastContainer, toast } from "react-toastify";
@@ -17,6 +18,7 @@ export default function Login() {
     draggable: true,
     theme: "dark",
   };
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     if (localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)) {
       navigate("/");
@@ -41,6 +43,7 @@ export default function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
     if (validateForm()) {
       const { username, password } = values;
       const { data } = await axios.post(loginRoute, {
@@ -48,9 +51,11 @@ export default function Login() {
         password,
       });
       if (data.status === false) {
+        setIsLoading(false);
         toast.error(data.msg, toastOptions);
       }
       if (data.status === true) {
+        setIsLoading(false);
         localStorage.setItem(
           process.env.REACT_APP_LOCALHOST_KEY,
           JSON.stringify(data.user)
@@ -63,6 +68,12 @@ export default function Login() {
 
   return (
     <>
+    {isLoading ? (
+        <FormContainer>
+          <h2>Loading...</h2>
+          <img src={loader} alt="loader" className="loader" />
+        </FormContainer>
+      ) : (
       <FormContainer>
         <form action="" onSubmit={(event) => handleSubmit(event)}>
           <div className="brand">
@@ -88,6 +99,7 @@ export default function Login() {
           </span>
         </form>
       </FormContainer>
+      )}
       <ToastContainer />
     </>
   );
@@ -102,6 +114,12 @@ const FormContainer = styled.div`
   gap: 1rem;
   align-items: center;
   background-color: #131324;
+  h2{
+    color:white;
+  }
+  .loader {
+    max-inline-size: 100%;
+  }
   .brand {
     display: flex;
     align-items: center;

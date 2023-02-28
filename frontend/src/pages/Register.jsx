@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
+import loader from "../assets/loader.gif"
 import { useNavigate, Link } from "react-router-dom";
 import Logo from "../assets/logo.png";
 import { ToastContainer, toast } from "react-toastify";
@@ -22,7 +23,7 @@ export default function Register() {
     password: "",
     confirmPassword: "",
   });
-
+  const [isLoading, setIsLoading] = useState(false);
   useEffect(() => {
     if (localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)) {
       navigate("/");
@@ -46,19 +47,13 @@ export default function Register() {
         "Username should be greater than 3 characters.",
         toastOptions
       );
-      
+
       return false;
-    }
-    
-    else if(username.length > 6){
-      toast.error(
-        "Username should not more than 6 characters.",
-        toastOptions
-      );
-      
+    } else if (username.length > 6) {
+      toast.error("Username should not more than 6 characters.", toastOptions);
+
       return false;
-    }
-    else if (password.length < 8) {
+    } else if (password.length < 8) {
       toast.error(
         "Password should be equal or greater than 8 characters.",
         toastOptions
@@ -74,6 +69,7 @@ export default function Register() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setIsLoading(true);
     if (handleValidation()) {
       const { email, username, password } = values;
       const { data } = await axios.post(registerRoute, {
@@ -83,9 +79,11 @@ export default function Register() {
       });
 
       if (data.status === false) {
+        setIsLoading(false);
         toast.error(data.msg, toastOptions);
       }
       if (data.status === true) {
+        setIsLoading(false);
         localStorage.setItem(
           process.env.REACT_APP_LOCALHOST_KEY,
           JSON.stringify(data.user)
@@ -97,42 +95,48 @@ export default function Register() {
 
   return (
     <>
-      <FormContainer>
-        <form action="" onSubmit={(event) => handleSubmit(event)}>
-          <div className="brand">
-            <img src={Logo} alt="logo" />
-            <h1>M-CHAT</h1>
-          </div>
-          <input
-            type="text"
-            placeholder="Username"
-            name="username"
-            onChange={(e) => handleChange(e)}
-          />
-          <input
-            type="email"
-            placeholder="Email"
-            name="email"
-            onChange={(e) => handleChange(e)}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            name="password"
-            onChange={(e) => handleChange(e)}
-          />
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            name="confirmPassword"
-            onChange={(e) => handleChange(e)}
-          />
-          <button type="submit">Create User</button>
-          <span>
-            Already have an account ? <Link to="/login">Login.</Link>
-          </span>
-        </form>
-      </FormContainer>
+      {isLoading ? (
+        <FormContainer>
+          <img src={loader} alt="loader" className="loader" />
+        </FormContainer>
+      ) : (
+        <FormContainer>
+          <form action="" onSubmit={(event) => handleSubmit(event)}>
+            <div className="brand">
+              <img src={Logo} alt="logo" />
+              <h1>M-CHAT</h1>
+            </div>
+            <input
+              type="text"
+              placeholder="Username"
+              name="username"
+              onChange={(e) => handleChange(e)}
+            />
+            <input
+              type="email"
+              placeholder="Email"
+              name="email"
+              onChange={(e) => handleChange(e)}
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              name="password"
+              onChange={(e) => handleChange(e)}
+            />
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              name="confirmPassword"
+              onChange={(e) => handleChange(e)}
+            />
+            <button type="submit">Create User</button>
+            <span>
+              Already have an account ? <Link to="/login">Login.</Link>
+            </span>
+          </form>
+        </FormContainer>
+      )}
       <ToastContainer />
     </>
   );
@@ -147,6 +151,9 @@ const FormContainer = styled.div`
   gap: 1rem;
   align-items: center;
   background-color: #131324;
+  .loader {
+    max-inline-size: 100%;
+  }
   .brand {
     display: flex;
     align-items: center;
@@ -154,7 +161,7 @@ const FormContainer = styled.div`
     justify-content: center;
     img {
       height: 5rem;
-      border-radius:20px;
+      border-radius: 20px;
     }
     h1 {
       color: white;
